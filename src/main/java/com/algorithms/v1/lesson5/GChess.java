@@ -5,11 +5,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GChess {
 
-    private static final String INPUT_PATH = "src/main/resources/cases/lesson5/G/input2.txt";
+    private static final String INPUT_PATH = "src/main/resources/cases/v1/lesson5/G/input4.txt";
 
 
     public static void main(String[] args) {
@@ -19,38 +21,59 @@ public class GChess {
             int k = Integer.parseInt(splitLine[1]);
 
             splitLine = reader.readLine().split(" ");
-            List<Integer> arr = new ArrayList<>(n);
 
+
+            Map<Long, Long> map = new HashMap<>();
             for (int i = 0; i < n; i++) {
-                int num = Integer.parseInt(splitLine[i]);
-                arr.add(num);
+                long num = Long.parseLong(splitLine[i]);
+                long count = 1;
+                if (map.containsKey(num)) {
+                    count = map.get(num) + 1;
+                }
+                map.put(num, count);
             }
 
-            System.out.println(solve(arr, n, k));
+            System.out.println(findCount(map, k));
         } catch (IOException ignored) {
 
         }
     }
 
-    public static int solve(List<Integer> arr, int n, int k) {
-        Collections.sort(arr);
-        int i = 0;
-        int j = 2;
+    public static long findCount(Map<Long, Long> map, int k) {
+        List<Long> keys = new ArrayList<>(map.keySet());
+        Collections.sort(keys);
 
-        //todo: первый случай отдельно обработать после while
+        final int N = keys.size();
 
-        int count = 0;
-        while (j < n) {
-            int first = arr.get(i);
-            int third = arr.get(j);
+        long res = 0;
+        int j = 0;
 
-            if (third / first > k) {
-                count += (j - 1 - i) * 3;
-                i = j;
+        long duplicates = 0;
+        for (int i = 0; i < N; i++) {
+            while (j < N && keys.get(i) * k >= keys.get(j)) {
+                if (map.get(keys.get(j)) >= 2) {
+                    duplicates++;
+                }
                 j++;
             }
-            j++;
+
+            long countI = map.get(keys.get(i));
+            long range = j - i;
+
+            if (countI >= 2) {
+                // 3 кол-во перестановок
+                // range - 1 - любое число между l и r
+                res += (range - 1) * 3;
+                duplicates--;
+            }
+            if (countI >= 3) {
+                res++;
+            }
+            // арифм прогрессия
+            res += (range - 1) * (range - 2) * 3;
+            res += duplicates * 3;
         }
-        return count;
+
+        return res;
     }
 }
